@@ -14,36 +14,41 @@ Feature: Data analysis
 
   Scenario Outline: Tracking
     When The image <file> is sent to the server
-    And The image contains at least one trackable object
-    Then The element <target> is detected
+    Then The element at (<x>,<y>) is detected
     Examples:
-      | target | file |
+      | x | y | file |
 
   Scenario Outline: Face recognition
     When The image <file> is sent to the server
-    And The image contains at least one face
-    Then The element <target> is detected
+    Then The element at (<x>,<y>) is detected
     Examples:
-      | target | file |
+      |  x  |  y  | file         |
+      | 281 | 203 | test_01.webp |
+      | 293 | 233 | test_02.webp |
+      | 342 | 197 | test_03.jpg  |
+      | 293 | 221 | test_04.jpg  |
+      | 283 | 175 | test_05.webp |
+      | 293 | 393 | test_06.jpg  |
+      | 260 | 363 | test_07.jpg  |
+      | 292 | 262 | test_08.webp |
+      | 133 | 156 | test_09.jpg  |
+      | 220 | 197 | test_10.webp |
+      | 318 | 184 | test_11.jpg  |
 
   Scenario Outline: Known face recognition
     When The image <file> is sent to the server
-    And The image contains at least one face
-    And The image contains a known face
-    Then The element <target> is detected
+    Then The element at (<x>,<y>) is detected
     Examples:
-      | target | file |
+      | x | y | file |
 
   Scenario Outline: Pose recognition
     When The image <file>, is sent to the server
-    And The image contains at least someone doing a known pose
-    Then The element <target> is detected
+    Then The element at (<x>,<y>) is detected
     Examples:
-      | target | file |
+      | x | y | file |
 
   Scenario Outline: Object recognition
     When The image <file> is sent to the server
-    And The image contains at least one known item
-    Then The object <target> is detected
+    Then The element at (<x>,<y>) is detected
     Examples:
-      | target | file |
+      | x | y | file |
