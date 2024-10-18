@@ -4,10 +4,14 @@ import time
 import cv2
 
 
+FILE_PATH = f"{pathlib.Path().resolve()}\\AnalyseServer\\src"
+FILE_NAME = "test.mp4"
+PRECISION_REQUIRED = 10
+SCALE = 1.1  # <target_scale>.<original_scale>
+
+
 def test():
-    file_path = f"{pathlib.Path().resolve()}\\AnalyseServer\\src"
-    file_name = "test.mp4"
-    vid = cv2.VideoCapture(f"{file_path}\\{file_name}")
+    vid = cv2.VideoCapture(f"{FILE_PATH}\\{FILE_NAME}")
         
     c_frame = 1
     t_frame = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -20,7 +24,10 @@ def test():
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         timestamp2 = time.time()
         faces = face_recognition.detectMultiScale(
-            img_gray, scaleFactor=1.1, minNeighbors=10, minSize=(40, 40)
+            img_gray,
+            scaleFactor=1.1,
+            minNeighbors=PRECISION_REQUIRED,
+            minSize=(40, 40)
         )
         timestamp3 = time.time()
 
