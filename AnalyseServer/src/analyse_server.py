@@ -50,5 +50,7 @@ def show_detections(frame,
 
 
 if __name__ == "__main__":
+    if (face_recognition.dlib.DLIB_USE_CUDA):
+        print("Face recognition is using CUDA")
     import flask_server
     flask_server.run()
