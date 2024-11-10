@@ -3,6 +3,7 @@ ARG CUDA_VERSION=11.6.1
 ARG CUDNN_VERSION=8
 ARG PYTHON_VERSION=3.8
 SHELL ["/bin/bash", "-c"]
+
 RUN export DEBIAN_FRONTEND=noninteractive && \
     CUDA_PATH=(/usr/local/cuda-*) && \
     CUDA=`basename $CUDA_PATH` && \
@@ -43,4 +44,8 @@ RUN git clone https://github.com/davisking/dlib.git && \
 RUN cd dlib && \
     python3 setup.py install
 
-RUN python3 -m pip install opencv-python==4.8.0.74
+RUN python3 -m pip install opencv-python==4.8.0.74 Flask
+
+COPY src/ /app/src/
+
+CMD ["python3", "/app/src/analyse_server.py"]

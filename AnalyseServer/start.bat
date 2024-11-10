@@ -1,0 +1,1 @@
+docker run -it --rm --gpus=all -p 5000:5000 analyse-server
