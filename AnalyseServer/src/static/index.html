@@ -1,0 +1,56 @@
+<!-- Fichier initialement généré par IA -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnalyseServer</title>
+    <style>
+        #resultContainer {
+            
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload une image</h1>
+    <input type="file" id="imageInput" onchange="uploadImage()" multiple />
+
+    <h2>Image modifiée</h2>
+    <div id="resultContainer"></div>
+    <img id="resultImage" alt="Image modifiée" style="max-width: 500px; display: none;" />
+
+    <script>
+        function uploadImage() {
+            document.getElementById("resultContainer").innerHTMl = "";
+            files = document.getElementById("imageInput").files;
+            Array.from(files).forEach(file => {
+                const formData = new FormData();
+                formData.append("image", file);
+
+                fetch("http://localhost:5000/analyse-server/process", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(res => {
+                    console.log(res)
+                    if (res.ok) {
+                        return res.text();
+                    } else {
+                        throw new Error("Erreur de téléchargement de l\'image");
+                    }
+                })
+                .then(data => {
+                    // Afficher le message de retour et l'image modifiée
+                    img = document.createElement("img")
+                    img.src = data;
+                    /* img.style.maxWidth = (window.innerWidth / 4) + "px";
+                    img.style.maxHeight = (window.innerHeight / 2) + "px"; */
+                    img.style.height = (window.innerHeight / 3) + "px";
+                    document.getElementById("resultContainer").appendChild(img);
+                })
+                .catch(error => console.error("Erreur lors de l'upload de l'image", error));
+            });;
+        }
+    </script>
+</body>
+</html>

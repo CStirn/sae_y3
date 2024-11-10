@@ -1,73 +1,74 @@
-import pathlib
-import time
+import os
 
 import cv2
+import dlib
 
 
-FILE_PATH = f"{pathlib.Path().resolve()}\\AnalyseServer\\src"
-FILE_NAME = "test.mp4"
-PRECISION = 10
-SCALE = 1.1  # <target_scale>.<original_scale>
-MIN_SIZE = 40
+_ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
+
+PROCESS_SCALE = 1
 
 
-def get_faces(
-        img,
-        face_recognition = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml"),
-        scale = SCALE,
-        precision = PRECISION,
-        min_size = MIN_SIZE
-):
-    return face_recognition.detectMultiScale(
-            cv2.cvtColor(img, cv2.COLOR_BGR2GRAY),
-            scaleFactor=scale,
-            minNeighbors=precision,
-            minSize=(min_size, min_size)
-        )
+# Various pre-processing functions to make the face detection faster
+def _pre_process(frame):
+    # Resize the image
+    frame = cv2.resize(frame, (
+                int(frame.shape[1] * PROCESS_SCALE),
+                int(frame.shape[0] * PROCESS_SCALE)
+            ))
+    # Make the image black and white
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    return frame
 
 
+# Used if CUDA support isn't enabled
+def _get_faces_cpu(frame):
+    # Pre-process the image
+    frame = _pre_process(frame)
 
-def test():
-    vid = cv2.VideoCapture(f"{FILE_PATH}\\{FILE_NAME}")
-        
-    c_frame = 1
-    t_frame = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
+    # Get the faces
+    faces = _DETECTOR(frame)
 
-    ok, img = vid.read()
-    face_recognition = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+    # Normalize the output [(x1, y1, x2, y2)]
+    res = []
+    for face in faces:
+        res.append((
+            int(face.left() / PROCESS_SCALE),
+            int(face.top() / PROCESS_SCALE),
+            int(face.right() / PROCESS_SCALE),
+            int(face.bottom() / PROCESS_SCALE)
+        ))
 
-    while ok:
-        timestamp1 = time.time()
-        faces = get_faces(img, face_recognition)
-        timestamp2 = time.time()
+    # Return the faces
+    return res
 
-        for (x, y, w, h) in faces:
-            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 4)
 
-        cv2.putText(
-            img,
-            f"Frame {c_frame}/{t_frame}",
-            (50, 75),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1.5,
-            (64, 64, 192),
-            4
-        )
-        cv2.putText(
-            img,
-            f"Total: {round((timestamp2 - timestamp1) * 1000, 2)}ms",
-            (50, 135),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1,
-            (64, 64, 192),
-            2
-        )
-        cv2.imshow("", img)
-        cv2.waitKey(100)
+# Used if CUDA support is enabled
+def _get_faces_gpu(frame):
+    # Pre-process the image
+    frame = _pre_process(frame)
 
-        c_frame += 1
-        ok, img = vid.read()
-        
+    # Get the faces
+    faces = _DETECTOR(frame)
 
-if __name__ == "__main__":
-    test()
+    # Normalize the output [(x1, y1, x2, y2)]
+    res = []
+    for face in faces:
+        res.append((
+            int(face.rect.left() / PROCESS_SCALE),
+            int(face.rect.top() / PROCESS_SCALE),
+            int(face.rect.right() / PROCESS_SCALE),
+            int(face.rect.bottom() / PROCESS_SCALE)
+        ))
+
+    # Return the faces
+    return res
+
+
+# Select the right get_faces function depending on if CUDA support is enabled
+if dlib.DLIB_USE_CUDA:
+    _DETECTOR = dlib.cnn_face_detection_model_v1(os.path.join(_ROOT_PATH, "models", "mmod_human_face_detector.dat"))
+    get_faces = _get_faces_gpu
+else:
+    _DETECTOR = dlib.get_frontal_face_detector()
+    get_faces = _get_faces_cpu
